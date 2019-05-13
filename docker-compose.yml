@@ -1,0 +1,16 @@
+version: "2"
+services:
+  app:
+    image: miguelpeixe/liane-webhooks:latest
+    # Comment-out below to pull image from docker hub
+    build: .
+    # Comment-out below for production
+    command: node watch.js
+    ports:
+      - 8000:8000
+    volumes:
+      # Development volumes. Comment-out for production
+      - /liane-webhooks/node_modules
+      - .:/liane-webhooks
+    environment:
+      NODE_ENV: development

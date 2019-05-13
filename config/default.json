@@ -1,0 +1,7 @@
+{
+  "url": "SITE_URL",
+  "facebook": {
+    "clientId": "client id",
+    "clientSecret": "client secret"
+  }
+}
