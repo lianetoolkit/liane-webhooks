@@ -38,43 +38,53 @@ app.use("/", verifyHubSignature, (req, res) => {
     res.status(200).send(req.query["hub.challenge"]);
   } else if (body.object == "page") {
     // Subscription update
+    let errors = [];
     body.entry.forEach(entry => {
       const facebookId = entry.id;
-      entry.changes.forEach(item => {
-        console.log({ item });
+      entry.changes.forEach(async item => {
         switch (item.field) {
           case "feed":
             const value = item.value;
-            console.log({ value });
-            lianeClient.call(
-              "webhookUpdate",
-              [
-                {
-                  token: "test",
-                  facebookAccountId: facebookId,
-                  data: value
-                }
-              ],
-              (err, res) => {
-                console.log(res);
-              }
-            );
-          // switch (value.verb) {
-          //   case "add":
-          //     if (value.item == "comment") {
-          //       console.log("Comment added");
-          //     } else {
-          //       console.log("new entry", value);
-          //     }
-          //     break;
-          //   case "remove":
-          //     break;
-          // }
-          // break;
+            try {
+              await new Promise((resolve, reject) => {
+                lianeClient.call(
+                  "webhookUpdate",
+                  [
+                    {
+                      token: "test",
+                      facebookAccountId: facebookId,
+                      data: value
+                    }
+                  ],
+                  (err, res) => {
+                    if (!err) {
+                      resolve(res);
+                    } else {
+                      reject(err);
+                    }
+                  }
+                );
+              });
+            } catch (err) {
+              errors.push(err);
+            }
+            break;
+          case "messages":
+          case "message_deliveries":
+          case "messaging_postbacks":
+          case "message_deliveries":
+          case "message_reads":
+            // Send to yeeko
+            break;
+          default:
         }
       });
-      res.status(200).send("ok");
     });
+    if (errors.length) {
+      res.status(500).send(errors);
+    } else {
+      res.sendStatus(200);
+    }
   } else {
     res.sendStatus(400);
   }

@@ -1,7 +1,12 @@
 {
-  "url": "SITE_URL",
+  "url": "<site url>",
   "facebook": {
-    "clientId": "client id",
-    "clientSecret": "client secret"
+    "clientId": "<client id>",
+    "clientSecret": "<client secret>"
+  },
+  "liane": {
+    "host": "localhost",
+    "port": 3000,
+    "token": "<webhook token>"
   }
 }

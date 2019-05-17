@@ -42,27 +42,6 @@ lianeClient.connect((err, wasReconnect) => {
   } else {
     console.log("Connected to Liane");
   }
-
-  // setTimeout(() => {
-  //   lianeClient.call(
-  //     "webhookUpdate",
-  //     [
-  //       {
-  //         token: "test"
-  //       }
-  //     ],
-  //     (err, res) => {
-  //       if (err) {
-  //         console.log(err);
-  //       } else {
-  //         console.log(res);
-  //       }
-  //     },
-  //     function() {
-  //       console.log(arguments);
-  //     }
-  //   );
-  // }, 5000);
 });
 
 // Facebook
