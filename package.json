@@ -19,6 +19,7 @@
     "ddp": "^0.12.1",
     "express": "^4.16.4",
     "fb": "^2.0.0",
+    "localtunnel": "^1.9.1",
     "lodash": "^4.17.11",
     "winston": "^3.2.1"
   },
@@ -30,7 +31,6 @@
     "@babel/preset-es2015": "^7.0.0-beta.53",
     "@babel/preset-stage-0": "^7.0.0",
     "cross-env": "^5.2.0",
-    "ngrok": "^3.1.1",
     "nodemon": "^1.19.0"
   }
 }

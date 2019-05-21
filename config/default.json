@@ -1,5 +1,9 @@
 {
   "url": "<site url>",
+  "localtunnel": {
+    "host": "<your localtunnel server (optional)>",
+    "subdomain": "<your subdomain (optional)>"
+  },
   "facebook": {
     "clientId": "<client id>",
     "clientSecret": "<client secret>"
