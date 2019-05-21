@@ -3,6 +3,8 @@ import config from "config";
 import bodyParser from "body-parser";
 import crypto from "crypto";
 
+import logger from "./logger";
+
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -16,6 +18,7 @@ const verifyHubSignature = (req, res, next) => {
     hmac.update(req.body);
     const expectedSignature = "sha1=" + hmac.digest("hex");
     if (expectedSignature !== signature) {
+      logger.error("Invalid signature from hub challenge");
       res.status(400).send("Invalid signature");
     } else {
       next();
@@ -27,7 +30,8 @@ const verifyHubSignature = (req, res, next) => {
 
 // Handling subscription data
 app.use("/", verifyHubSignature, (req, res) => {
-  const lianeClient = app.get("liane");
+  const lianeConfig = config.get("liane");
+  const lianeClient = app.get("lianeClient");
   let body = req.body;
   if (Buffer.isBuffer(req.body)) body = JSON.parse(req.body.toString());
   if (
@@ -35,23 +39,28 @@ app.use("/", verifyHubSignature, (req, res) => {
     req.query["hub.verify_token"] == app.get("fbVerifyToken")
   ) {
     // Authorize subscription
+    logger.info("Authorizing subscription through hub signature challenge");
     res.status(200).send(req.query["hub.challenge"]);
   } else if (body.object == "page") {
     // Subscription update
+    logger.info(
+      `Receiving ${body.entry.length} entries from Facebook subscription`
+    );
     let errors = [];
-    body.entry.forEach(entry => {
+    body.entry.forEach(async entry => {
       const facebookId = entry.id;
       entry.changes.forEach(async item => {
         switch (item.field) {
           case "feed":
             const value = item.value;
+            let response;
             try {
-              await new Promise((resolve, reject) => {
-                lianeClient.call(
+              response = await new Promise((resolve, reject) => {
+                const callres = lianeClient.call(
                   "webhookUpdate",
                   [
                     {
-                      token: "test",
+                      token: lianeConfig.token,
                       facebookAccountId: facebookId,
                       data: value
                     }
@@ -68,6 +77,11 @@ app.use("/", verifyHubSignature, (req, res) => {
             } catch (err) {
               errors.push(err);
             }
+            if (!response || response == undefined) {
+              errors.push(
+                "Unexpected error while sending webhook data to Liane"
+              );
+            }
             break;
           case "messages":
           case "message_deliveries":
@@ -81,8 +95,12 @@ app.use("/", verifyHubSignature, (req, res) => {
       });
     });
     if (errors.length) {
+      for (const error of errors) {
+        logger.error("Error processing webhook data", error);
+      }
       res.status(500).send(errors);
     } else {
+      logger.info("Succesfully processed webhook updates");
       res.sendStatus(200);
     }
   } else {

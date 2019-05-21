@@ -19,7 +19,8 @@
     "ddp": "^0.12.1",
     "express": "^4.16.4",
     "fb": "^2.0.0",
-    "lodash": "^4.17.11"
+    "lodash": "^4.17.11",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.4",

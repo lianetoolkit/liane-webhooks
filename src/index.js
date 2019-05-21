@@ -5,6 +5,7 @@ import DDPClient from "ddp";
 import FB from "fb";
 import { URL } from "url";
 
+import logger from "./logger";
 import subscriptions from "./subscriptions";
 
 const ENV = process.env.NODE_ENV;
@@ -13,10 +14,6 @@ const PORT = process.env.PORT || 8000;
 const facebookConfig = config.get("facebook");
 const siteUrl = new URL(process.env.SITE_URL || config.get("url"));
 const app = express();
-
-app.get("/", (req, res) => {
-  res.send("Hello World");
-});
 
 app.set("fbVerifyToken", crypto.randomBytes(12).toString("hex"));
 
@@ -31,16 +28,16 @@ const lianeClient = new DDPClient({
   useSockJs: true
 });
 
-app.set("liane", lianeClient);
+app.set("lianeClient", lianeClient);
 
 lianeClient.connect((err, wasReconnect) => {
   if (err) {
-    console.log("Liane connection error!");
+    logger.error("Error connecting to Liane");
     return;
   } else if (wasReconnect) {
-    console.log("Reestablishment of a connection to Liane.");
+    logger.warn("Restablished connection to Liane");
   } else {
-    console.log("Connected to Liane");
+    logger.info("Connected to Liane");
   }
 });
 
@@ -87,5 +84,5 @@ FB.api(
 app.use("/subscriptions", subscriptions);
 
 app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
+  logger.info(`Listening on port ${PORT}`);
 });
