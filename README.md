@@ -6,12 +6,12 @@
 
 This small app serves as a proxy for Facebook Webhooks, allowing you to configure multiple services to receive the data.
 
-### Supported Methods
+## Supported Methods
 
 - Meteor DDP
 - HTTP _(soon)_
 
-### Configuring
+## Configuring
 
 At `config/` directory you can create `production.json` and `development.json` configuration files to setup your variables.
 
@@ -53,19 +53,19 @@ Example config file:
 }
 ```
 
-#### URL
+### URL
 
 Your webhook url. Must be SSL for receiving Facebook webhook data. Can be blank if running in development mode with `npm run watch`.
 
-#### Localtunnel
+### Localtunnel
 
 Optional for custom [localtunnel server](https://github.com/localtunnel/server).
 
-#### Facebook (required)
+### Facebook (required)
 
 Your Facebook app client settings.
 
-#### Services (required)
+### Services (required)
 
 Services that will receive the data.
 
@@ -78,7 +78,7 @@ Services that will receive the data.
 - **token**: token provided by the service for security validation
 - **test**: if set to true, errors coming from this service won't be sent as response to Facebook (keeps Facebook from reattempting to send the data)
 
-### Usage
+## Usage
 
 Install dependencies by running `npm install`.
 
