@@ -78,7 +78,7 @@ Services that will receive the data.
 
 - **type**: can be `ddp` or `http`
 - **methodName**: name of the service's DDP method _(DDP only)_
-- **fields**: list of [fields](https://developers.facebook.com/docs/graph-api/webhooks/reference/page/) that this service should receive data from
+- **fields**: list of [fields](https://developers.facebook.com/docs/graph-api/webhooks/reference/page/) that this service should receive data from. Leave empty to receive from all subscribed fields
 - **host**: hostname for DDP client connection _(DDP only)_
 - **port**: port for DDP client connection _(DDP only)_
 - **url**: full URL for HTTP connection _(HTTP only)_
