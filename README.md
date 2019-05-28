@@ -6,6 +6,8 @@
 
 This small app serves as a proxy for Facebook Webhooks, allowing you to configure multiple services to receive the data.
 
+Currently supports only [_Page_ webhooks](https://developers.facebook.com/docs/graph-api/webhooks/reference/page/), which also includes the [Messenger Platform](https://developers.facebook.com/docs/messenger-platform/webhook/).
+
 ## Supported Methods
 
 - Meteor DDP
