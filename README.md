@@ -1,8 +1,10 @@
 # Liane Webhooks
 
-## Facebook Webhooks Proxy
+**A small app for proxying Facebook Webhooks**
 
-This small app serves as a proxy for Facebook Webhook, allowing you to configure multiple services to receive the data.
+---
+
+This small app serves as a proxy for Facebook Webhooks, allowing you to configure multiple services to receive the data.
 
 ### Supported Methods
 
@@ -83,3 +85,5 @@ Install dependencies by running `npm install`.
 You can run in development mode using `npm run watch`, which will automatically start a **localtunnel** with **nodemon**, configure your site url and set the webhook configuration to your Facebook app.
 
 For production use, make sure you have all the config settings set and run `npm start`.
+
+**WARNING: By running the app, it will automatically set your app webhook URL with a generated verification token.**
