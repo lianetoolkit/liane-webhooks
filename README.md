@@ -80,10 +80,14 @@ Services that will receive the data.
 
 ## Usage
 
+**WARNING: By running the app, it will automatically set your app webhook URL with a generated verification token.**
+
 Install dependencies by running `npm install`.
 
 You can run in development mode using `npm run watch`, which will automatically start a **localtunnel** with **nodemon**, configure your site url and set the webhook configuration to your Facebook app.
 
-For production use, make sure you have all the config settings set and run `npm start`.
+### Production
 
-**WARNING: By running the app, it will automatically set your app webhook URL with a generated verification token.**
+For production use, make sure you have all the config settings set.
+
+Build by running `npm run build` then serve with `npm run serve`.
