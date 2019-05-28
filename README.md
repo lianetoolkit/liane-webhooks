@@ -87,7 +87,7 @@ Services that will receive the data.
 
 ## Usage
 
-**WARNING: By running the app, it will automatically set your app webhook URL with a generated verification token.**
+**WARNING: By running the app, it will automatically set your app webhook URL with the list of fields provided for subscription and a generated verification token.**
 
 Install dependencies by running `npm install`.
 
