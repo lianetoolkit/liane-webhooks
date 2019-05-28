@@ -8,9 +8,22 @@
     "clientId": "<client id>",
     "clientSecret": "<client secret>"
   },
-  "liane": {
-    "host": "localhost",
-    "port": 3000,
-    "token": "<webhook token>"
+  "services": {
+    "liane": {
+      "type": "ddp",
+      "methodName": "webhookUpdate",
+      "entries": ["feed"],
+      "host": "localhost",
+      "port": 3000,
+      "token": "token_here"
+    },
+    "another": {
+      "type": "http",
+      "entries": ["feed"],
+      "host": "localhost",
+      "port": 4000,
+      "token": "token_here",
+      "test": true
+    }
   }
 }

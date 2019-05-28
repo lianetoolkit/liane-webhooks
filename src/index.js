@@ -17,29 +17,36 @@ const app = express();
 
 app.set("fbVerifyToken", crypto.randomBytes(12).toString("hex"));
 
-// Liane DDP
-const lianeConfig = config.get("liane");
-const lianeClient = new DDPClient({
-  host: lianeConfig.host,
-  port: lianeConfig.port,
-  autoReconnect: true,
-  autoReconnectTimer: 500,
-  ddpVersion: "1",
-  useSockJs: true
-});
+const services = config.get("services");
 
-app.set("lianeClient", lianeClient);
+logger.info(`Initilizing with services: ${Object.keys(services).join(", ")}`);
 
-lianeClient.connect((err, wasReconnect) => {
-  if (err) {
-    logger.error("Error connecting to Liane");
-    return;
-  } else if (wasReconnect) {
-    logger.warn("Restablished connection to Liane");
-  } else {
-    logger.info("Connected to Liane");
+let ddpClients = {};
+for (const serviceName in services) {
+  const service = services[serviceName];
+  if (service.type == "ddp") {
+    const client = new DDPClient({
+      host: service.host,
+      port: service.port,
+      autoReconnect: true,
+      autoReconnectTimer: 500,
+      ddpVersion: "1",
+      useSockJs: true
+    });
+    client.connect((err, wasReconnect) => {
+      if (err) {
+        logger.error(`Error connecting to ${serviceName}`);
+        return;
+      } else if (wasReconnect) {
+        logger.warn(`Restablished connection to ${serviceName}`);
+      } else {
+        logger.info(`Connected to ${serviceName}`);
+      }
+    });
+    ddpClients[serviceName] = client;
   }
-});
+}
+app.set("ddpClients", ddpClients);
 
 // Facebook
 

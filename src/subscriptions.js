@@ -63,6 +63,70 @@ const verifyHubSignature = (req, res, next) => {
   }
 };
 
+const Push = function(name, service, facebookId, item) {
+  return {
+    ddp: () => {
+      const clients = app.get("ddpClients");
+      const client = clients[name];
+      return new Promise((resolve, reject) => {
+        client.call(
+          service.methodName,
+          [
+            {
+              token: service.token,
+              facebookAccountId: facebookId,
+              data: item.value
+            }
+          ],
+          (err, res) => {
+            if (!err) {
+              resolve(res);
+            } else {
+              if (service.test) {
+                logger.warn(`${name} test service errored`);
+                console.log(err);
+                resolve();
+              } else {
+                reject(err);
+              }
+            }
+          }
+        );
+      });
+    },
+    http: () => {
+      return new Promise(resolve => resolve());
+    }
+  };
+};
+
+const pushItem = (facebookId, item) => {
+  const services = config.get("services");
+  let promises = [];
+  for (const serviceName in services) {
+    const service = services[serviceName];
+    if (service.entries.indexOf(item.field) !== -1) {
+      promises.push(
+        new Promise((resolve, reject) => {
+          const push = Push(serviceName, service, facebookId, item);
+          if (push[service.type]) {
+            push[service.type]()
+              .then(res => {
+                resolve(res);
+              })
+              .catch(err => {
+                reject(err);
+              });
+          } else {
+            reject("Service type not supported");
+          }
+        })
+      );
+    }
+  }
+  return Promise.all(promises);
+};
+
 // Handling subscription data
 app.use(
   "/",
@@ -70,8 +134,6 @@ app.use(
   authorizeFacebook,
   verifyHubSignature,
   (req, res) => {
-    const lianeConfig = config.get("liane");
-    const lianeClient = app.get("lianeClient");
     let body = req.body;
     if (Buffer.isBuffer(req.body)) body = JSON.parse(req.body.toString());
     if (body.object == "page") {
@@ -79,62 +141,22 @@ app.use(
         `Receiving ${body.entry.length} entries from Facebook subscription`
       );
       let errors = [];
-      body.entry.forEach(async entry => {
+      let promises = [];
+      body.entry.forEach(entry => {
         const facebookId = entry.id;
         entry.changes.forEach(async item => {
-          switch (item.field) {
-            case "feed":
-              const value = item.value;
-              let response;
-              try {
-                response = await new Promise((resolve, reject) => {
-                  const callres = lianeClient.call(
-                    "webhookUpdate",
-                    [
-                      {
-                        token: lianeConfig.token,
-                        facebookAccountId: facebookId,
-                        data: value
-                      }
-                    ],
-                    (err, res) => {
-                      if (!err) {
-                        resolve(res);
-                      } else {
-                        reject(err);
-                      }
-                    }
-                  );
-                });
-              } catch (err) {
-                errors.push(err);
-              }
-              if (!response || response == undefined) {
-                errors.push(
-                  "Unexpected error while sending webhook data to Liane"
-                );
-              }
-              break;
-            case "messages":
-            case "message_deliveries":
-            case "messaging_postbacks":
-            case "message_deliveries":
-            case "message_reads":
-              // Send to yeeko
-              break;
-            default:
-          }
+          promises.push(pushItem(facebookId, item));
         });
       });
-      if (errors.length) {
-        for (const error of errors) {
-          logger.error("Error processing webhook data", error);
-        }
-        res.status(500).send(errors);
-      } else {
-        logger.info("Succesfully processed webhook updates");
-        res.sendStatus(200);
-      }
+      Promise.all(promises)
+        .then(() => {
+          logger.info("Succesfully processed webhook updates");
+          res.sendStatus(200);
+        })
+        .catch(err => {
+          logger.error("Error processing webhook data");
+          res.status(500).send(errors);
+        });
     } else {
       res.sendStatus(400);
     }
