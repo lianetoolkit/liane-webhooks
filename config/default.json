@@ -1,29 +1,7 @@
 {
   "url": "<site url>",
-  "localtunnel": {
-    "host": "<your localtunnel server (optional)>",
-    "subdomain": "<your subdomain (optional)>"
-  },
   "facebook": {
     "clientId": "<client id>",
     "clientSecret": "<client secret>"
-  },
-  "services": {
-    "liane": {
-      "type": "ddp",
-      "methodName": "webhookUpdate",
-      "entries": ["feed"],
-      "host": "localhost",
-      "port": 3000,
-      "token": "token_here"
-    },
-    "another": {
-      "type": "http",
-      "entries": ["feed"],
-      "host": "localhost",
-      "port": 4000,
-      "token": "token_here",
-      "test": true
-    }
   }
 }
