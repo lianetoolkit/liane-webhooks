@@ -2,6 +2,7 @@
   "url": "<site url>",
   "facebook": {
     "clientId": "<client id>",
-    "clientSecret": "<client secret>"
+    "clientSecret": "<client secret>",
+    "fields": ["<array of webhook fields to subscribe to>"]
   }
 }

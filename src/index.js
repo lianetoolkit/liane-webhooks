@@ -72,16 +72,7 @@ FB.api(
     FB.api(`${facebookConfig.clientId}/subscriptions`, "post", {
       object: "page",
       callback_url: `${siteUrl.origin}/subscriptions`,
-      fields: [
-        "feed",
-        "messages",
-        "message_deliveries",
-        "messaging_postbacks",
-        "message_deliveries",
-        "message_reads",
-        "ratings",
-        "mention"
-      ],
+      fields: facebookConfig.fields,
       verify_token: app.get("fbVerifyToken"),
       access_token: res.access_token
     });

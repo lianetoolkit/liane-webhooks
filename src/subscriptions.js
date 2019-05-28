@@ -105,7 +105,7 @@ const pushItem = (facebookId, item) => {
   let promises = [];
   for (const serviceName in services) {
     const service = services[serviceName];
-    if (service.entries.indexOf(item.field) !== -1) {
+    if (service.fields.indexOf(item.field) !== -1) {
       promises.push(
         new Promise((resolve, reject) => {
           const push = Push(serviceName, service, facebookId, item);
