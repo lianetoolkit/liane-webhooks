@@ -2,6 +2,7 @@ import express from "express";
 import config from "config";
 import bodyParser from "body-parser";
 import crypto from "crypto";
+import axios from "axios";
 
 import logger from "./logger";
 
@@ -16,6 +17,14 @@ app.use(
   })
 );
 app.use(bodyParser.urlencoded({ extended: true }));
+
+const MESSAGE_FIELD_MAP = {
+  messages: "message",
+  message_deliveries: "delivery",
+  messaging_optins: "optin",
+  messaging_postbacks: "postback",
+  message_reads: "read"
+};
 
 // Validate request
 // Should either be authorization or webhook data with signature
@@ -63,7 +72,7 @@ const verifyHubSignature = (req, res, next) => {
   }
 };
 
-const Push = function(name, service, facebookId, item) {
+const Push = function(name, service, facebookId, item, time) {
   return {
     ddp: () => {
       const clients = app.get("ddpClients");
@@ -75,7 +84,7 @@ const Push = function(name, service, facebookId, item) {
             {
               token: service.token,
               facebookAccountId: facebookId,
-              data: item.value
+              data: getBody(facebookId, time, item)
             }
           ],
           (err, res) => {
@@ -95,12 +104,67 @@ const Push = function(name, service, facebookId, item) {
       });
     },
     http: () => {
-      return new Promise(resolve => resolve());
+      return new Promise((resolve, reject) => {
+        let url = service.url;
+        if (service.token) {
+          url += `?token=${service.token}`;
+        }
+        const body = getBody(facebookId, time, item);
+        axios
+          .post(url, body)
+          .then(res => {
+            resolve(res);
+          })
+          .catch(err => {
+            if (service.test) {
+              logger.warn(`${name} test service errored`);
+              console.log(err);
+              resolve();
+            } else {
+              reject(err);
+            }
+          });
+      });
     }
   };
 };
 
-const pushItem = (facebookId, item) => {
+const validateFields = (serviceFields, item) => {
+  if (item.field) {
+    // FEED validation
+    return serviceFields.indexOf(item.field) !== -1;
+  } else if (item.sender) {
+    // Message validation
+    let fields = serviceFields.map(field => MESSAGE_FIELD_MAP[field]);
+    let valid = false;
+    Object.keys(item).forEach(key => {
+      if (fields.indexOf(key) !== -1) valid = true;
+    });
+    return valid;
+  }
+  return false;
+};
+
+const getBody = (facebookId, time, item) => {
+  let body = {
+    object: "page",
+    entry: [
+      {
+        time,
+        id: facebookId
+      }
+    ]
+  };
+  if (item.field) {
+    body.entry[0].changes = [item];
+  }
+  if (item.sender) {
+    body.entry[0].messaging = [item];
+  }
+  return body;
+};
+
+const pushItem = (facebookId, item, time) => {
   const services = config.get("services");
   let promises = [];
   for (const serviceName in services) {
@@ -108,11 +172,11 @@ const pushItem = (facebookId, item) => {
     if (
       !service.fields ||
       !service.fields.length ||
-      service.fields.indexOf(item.field) !== -1
+      validateFields(service.fields, item)
     ) {
       promises.push(
         new Promise((resolve, reject) => {
-          const push = Push(serviceName, service, facebookId, item);
+          const push = Push(serviceName, service, facebookId, item, time);
           if (push[service.type]) {
             push[service.type]()
               .then(res => {
@@ -148,9 +212,15 @@ app.use(
       let promises = [];
       body.entry.forEach(entry => {
         const facebookId = entry.id;
-        entry.changes.forEach(async item => {
-          promises.push(pushItem(facebookId, item));
-        });
+        if (entry.changes) {
+          entry.changes.forEach(async item => {
+            promises.push(pushItem(facebookId, item, entry.time));
+          });
+        } else if (entry.messaging) {
+          entry.messaging.forEach(async item => {
+            promises.push(pushItem(facebookId, item, entry.time));
+          });
+        }
       });
       Promise.all(promises)
         .then(() => {
@@ -158,8 +228,9 @@ app.use(
           res.sendStatus(200);
         })
         .catch(err => {
+          console.log(err);
           logger.error("Error processing webhook data");
-          res.status(500).send(errors);
+          res.status(500).send(err);
         });
     } else {
       res.sendStatus(400);
