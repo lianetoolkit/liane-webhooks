@@ -11,7 +11,8 @@ Currently supports only [_Page_ webhooks](https://developers.facebook.com/docs/g
 ## Supported Methods
 
 - Meteor DDP
-- HTTP _(soon)_
+- HTTP
+- _Socket.io (soon)_
 
 ## Configuring
 
@@ -46,7 +47,6 @@ Example config file:
         "messages",
         "message_deliveries",
         "message_reads",
-        "message_deliveries",
         "messaging_postbacks",
         "messaging_optins"
       ],
