@@ -8,12 +8,13 @@
     "watch": "node watch.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "setup": "rm -rf dist/*",
-    "build": "npm run setup && cross-env NODE_ENV=production babel src --presets=@babel/preset-env -d dist --copy-files",
+    "build": "npm run setup && cross-env NODE_ENV=production babel src -d dist --copy-files",
     "serve": "cross-env NODE_ENV=production node dist/index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@babel/runtime": "^7.5.0",
     "axios": "^0.19.0",
     "body-parser": "^1.19.0",
     "config": "^3.1.0",
@@ -28,6 +29,7 @@
     "@babel/cli": "^7.5.0",
     "@babel/core": "^7.5.0",
     "@babel/node": "^7.5.0",
+    "@babel/plugin-transform-runtime": "^7.5.0",
     "@babel/preset-env": "^7.5.0",
     "cross-env": "^5.2.0",
     "nodemon": "^1.19.0"
