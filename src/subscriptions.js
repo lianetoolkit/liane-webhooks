@@ -32,8 +32,8 @@ const validateRequest = (req, res, next) => {
   if (req.query["hub.mode"] == "subscribe" || req.headers["x-hub-signature"]) {
     next();
   } else {
-    logger.warn("Invalid request");
-    res.status(400).send("Invalid request");
+    logger.warn("Invalid request, returning 200 anyway");
+    res.status(200).send("pong");
   }
 };
 
