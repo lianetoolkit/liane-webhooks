@@ -15,7 +15,10 @@ const facebookConfig = config.get("facebook");
 const siteUrl = new URL(process.env.SITE_URL || config.get("url"));
 const app = express();
 
-app.set("fbVerifyToken", crypto.randomBytes(12).toString("hex"));
+app.set(
+  "fbVerifyToken",
+  facebookConfig.webhookVerifyToken || crypto.randomBytes(12).toString("hex")
+);
 
 const services = config.get("services");
 
@@ -31,7 +34,7 @@ for (const serviceName in services) {
       autoReconnect: true,
       autoReconnectTimer: 500,
       ddpVersion: "1",
-      useSockJs: true
+      useSockJs: true,
     });
     client.connect((err, wasReconnect) => {
       if (err) {
@@ -52,7 +55,7 @@ app.set("ddpClients", ddpClients);
 
 FB.options({
   appId: facebookConfig.clientID,
-  appSecret: facebookConfig.clientSecret
+  appSecret: facebookConfig.clientSecret,
 });
 
 FB.api(
@@ -60,9 +63,9 @@ FB.api(
   {
     client_id: facebookConfig.clientId,
     client_secret: facebookConfig.clientSecret,
-    grant_type: "client_credentials"
+    grant_type: "client_credentials",
   },
-  res => {
+  (res) => {
     // FB.api(facebookConfig.clientId, "post", {
     //   link: siteUrl.origin,
     //   website_url: siteUrl.origin,
@@ -74,7 +77,7 @@ FB.api(
       callback_url: `${siteUrl.origin}/subscriptions`,
       fields: facebookConfig.fields,
       verify_token: app.get("fbVerifyToken"),
-      access_token: res.access_token
+      access_token: res.access_token,
     });
   }
 );

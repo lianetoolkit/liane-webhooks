@@ -30,6 +30,7 @@ Example config file:
   "facebook": {
     "clientId": "<client id>",
     "clientSecret": "<client secret>",
+    "webhookVerifyToken": "<secret verification token>",
     "fields": ["<array of webhook fields to subscribe to>"]
   },
   "services": {
@@ -68,8 +69,9 @@ Optional for custom [localtunnel server](https://github.com/localtunnel/server).
 
 ### Facebook (required)
 
-- **clientId**: you Facebook App client ID
-- **clientSecret**: you Facebook App client secret
+- **clientId**: Facebook App client ID
+- **clientSecret**: Facebook App client secret
+- **webhookVerifyToken**: Webhook subscription verification token. This is randomly generated on app startup if not set
 - **fields**: list of fields to subscribe to
 
 ### Services (required)
