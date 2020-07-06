@@ -32,24 +32,23 @@ const opts = config.get("localtunnel");
     ignore: [".git", "node_modules/**/node_modules"],
     env: {
       SITE_URL: url,
-      PORT: PORT
+      PORT: PORT,
     },
     ext: "js json",
     execMap: {
-      js: "babel-node"
-    }
+      js: "babel-node",
+    },
   });
 
   tunnel
-    .on("error", function(err) {
+    .on("error", function (err) {
       throw err;
     })
-    .on("close", function() {
+    .on("close", function () {
       console.log("Localtunnel closed");
       process.exit();
     })
-    .on("request", function(info) {
+    .on("request", function (info) {
       console.log(new Date().toString(), info.method, info.path);
     });
-
 })();

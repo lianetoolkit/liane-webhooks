@@ -1,5 +1,6 @@
 {
   "url": "<site url>",
+  "localtunnel": {},
   "facebook": {
     "clientId": "<client id>",
     "clientSecret": "<client secret>",

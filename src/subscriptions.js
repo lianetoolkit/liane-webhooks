@@ -13,7 +13,7 @@ app.use(
       if (buf && buf.length) {
         req.rawBody = buf.toString(encoding || "utf8");
       }
-    }
+    },
   })
 );
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -23,7 +23,7 @@ const MESSAGE_FIELD_MAP = {
   message_deliveries: "delivery",
   messaging_optins: "optin",
   messaging_postbacks: "postback",
-  message_reads: "read"
+  message_reads: "read",
 };
 
 // Validate request
@@ -72,7 +72,7 @@ const verifyHubSignature = (req, res, next) => {
   }
 };
 
-const Push = function(name, service, facebookId, item, time) {
+const Push = function (name, service, facebookId, item, time) {
   return {
     ddp: () => {
       const clients = app.get("ddpClients");
@@ -84,8 +84,8 @@ const Push = function(name, service, facebookId, item, time) {
             {
               token: service.token,
               facebookAccountId: facebookId,
-              data: getBody(facebookId, time, item)
-            }
+              data: getBody(facebookId, time, item),
+            },
           ],
           (err, res) => {
             if (!err) {
@@ -112,10 +112,10 @@ const Push = function(name, service, facebookId, item, time) {
         const body = getBody(facebookId, time, item);
         axios
           .post(url, body)
-          .then(res => {
+          .then((res) => {
             resolve(res);
           })
-          .catch(err => {
+          .catch((err) => {
             if (service.test) {
               logger.warn(`${name} test service errored`);
               console.log(err);
@@ -125,7 +125,7 @@ const Push = function(name, service, facebookId, item, time) {
             }
           });
       });
-    }
+    },
   };
 };
 
@@ -135,9 +135,9 @@ const validateFields = (serviceFields, item) => {
     return serviceFields.indexOf(item.field) !== -1;
   } else if (item.sender) {
     // Message validation
-    let fields = serviceFields.map(field => MESSAGE_FIELD_MAP[field]);
+    let fields = serviceFields.map((field) => MESSAGE_FIELD_MAP[field]);
     let valid = false;
-    Object.keys(item).forEach(key => {
+    Object.keys(item).forEach((key) => {
       if (fields.indexOf(key) !== -1) valid = true;
     });
     return valid;
@@ -151,9 +151,9 @@ const getBody = (facebookId, time, item) => {
     entry: [
       {
         time,
-        id: facebookId
-      }
-    ]
+        id: facebookId,
+      },
+    ],
   };
   if (item.field) {
     body.entry[0].changes = [item];
@@ -179,10 +179,10 @@ const pushItem = (facebookId, item, time) => {
           const push = Push(serviceName, service, facebookId, item, time);
           if (push[service.type]) {
             push[service.type]()
-              .then(res => {
+              .then((res) => {
                 resolve(res);
               })
-              .catch(err => {
+              .catch((err) => {
                 reject(err);
               });
           } else {
@@ -210,14 +210,14 @@ app.use(
       );
       let errors = [];
       let promises = [];
-      body.entry.forEach(entry => {
+      body.entry.forEach((entry) => {
         const facebookId = entry.id;
         if (entry.changes) {
-          entry.changes.forEach(async item => {
+          entry.changes.forEach(async (item) => {
             promises.push(pushItem(facebookId, item, entry.time));
           });
         } else if (entry.messaging) {
-          entry.messaging.forEach(async item => {
+          entry.messaging.forEach(async (item) => {
             promises.push(pushItem(facebookId, item, entry.time));
           });
         }
@@ -227,12 +227,13 @@ app.use(
           logger.info("Succesfully processed webhook updates");
           res.sendStatus(200);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log(err);
           logger.error("Error processing webhook data");
           res.status(500).send(err);
         });
     } else {
+      logger.warn("Bad request");
       res.sendStatus(400);
     }
   }
