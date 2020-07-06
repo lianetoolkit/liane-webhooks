@@ -39,6 +39,9 @@ for (const serviceName in services) {
     client.connect((err, wasReconnect) => {
       if (err) {
         logger.error(`Error connecting to ${serviceName}`);
+        if (!service.test) {
+          process.exit(1);
+        }
         return;
       } else if (wasReconnect) {
         logger.warn(`Restablished connection to ${serviceName}`);
