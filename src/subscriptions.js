@@ -72,35 +72,48 @@ const verifyHubSignature = (req, res, next) => {
   }
 };
 
+const validateDDPClient = (client) => {
+  return !(
+    client._isConnecting ||
+    client._isReconnecting ||
+    client._connectionFailed ||
+    client._isClosing
+  );
+};
+
 const Push = function (name, service, facebookId, item, time) {
   return {
     ddp: () => {
       const clients = app.get("ddpClients");
       const client = clients[name];
       return new Promise((resolve, reject) => {
-        client.call(
-          service.methodName,
-          [
-            {
-              token: service.token,
-              facebookAccountId: facebookId,
-              data: getBody(facebookId, time, item),
-            },
-          ],
-          (err, res) => {
-            if (!err) {
-              resolve(res);
-            } else {
-              if (service.test) {
-                logger.warn(`${name} test service errored`);
-                console.log(err);
-                resolve();
+        if (!validateDDPClient(client)) {
+          reject("DDP client not connected");
+        } else {
+          client.call(
+            service.methodName,
+            [
+              {
+                token: service.token,
+                facebookAccountId: facebookId,
+                data: getBody(facebookId, time, item),
+              },
+            ],
+            (err, res) => {
+              if (!err) {
+                resolve(res);
               } else {
-                reject(err);
+                if (service.test) {
+                  logger.warn(`${name} test service errored`);
+                  console.log(err);
+                  resolve();
+                } else {
+                  reject(err);
+                }
               }
             }
-          }
-        );
+          );
+        }
       });
     },
     http: () => {
