@@ -88,7 +88,12 @@ const Push = function (name, service, facebookId, item, time) {
       const client = clients[name];
       return new Promise((resolve, reject) => {
         if (!validateDDPClient(client)) {
-          reject("DDP client not connected");
+          if (service.test) {
+            logger.warn(`${name} client not connected`);
+            resolve();
+          } else {
+            reject(err);
+          }
         } else {
           client.call(
             service.methodName,
