@@ -92,7 +92,7 @@ const Push = function (name, service, facebookId, item, time) {
             logger.warn(`${name} client not connected`);
             resolve();
           } else {
-            reject(err);
+            reject(`${name} client not connected`);
           }
         } else {
           client.call(
