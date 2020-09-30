@@ -81,7 +81,7 @@ const validateDDPClient = (client) => {
   );
 };
 
-const Push = function (name, service, facebookId, item, time) {
+const Push = function (name, service, facebookId, item, time, object = 'page') {
   return {
     ddp: () => {
       const clients = app.get("ddpClients");
@@ -101,7 +101,7 @@ const Push = function (name, service, facebookId, item, time) {
               {
                 token: service.token,
                 facebookAccountId: facebookId,
-                data: getBody(facebookId, time, item),
+                data: getBody(facebookId, time, item, object),
               },
             ],
             (err, res) => {
@@ -127,7 +127,7 @@ const Push = function (name, service, facebookId, item, time) {
         if (service.token) {
           url += `?token=${service.token}`;
         }
-        const body = getBody(facebookId, time, item);
+        const body = getBody(facebookId, time, item, object);
         axios
           .post(url, body)
           .then((res) => {
@@ -163,9 +163,9 @@ const validateFields = (serviceFields, item) => {
   return false;
 };
 
-const getBody = (facebookId, time, item) => {
+const getBody = (facebookId, time, item, object = 'page') => {
   let body = {
-    object: "page",
+    object: object,
     entry: [
       {
         time,
@@ -182,7 +182,7 @@ const getBody = (facebookId, time, item) => {
   return body;
 };
 
-const pushItem = (facebookId, item, time) => {
+const pushItem = (facebookId, item, time, object = 'page') => {
   const services = config.get("services");
   let promises = [];
   for (const serviceName in services) {
@@ -194,7 +194,7 @@ const pushItem = (facebookId, item, time) => {
     ) {
       promises.push(
         new Promise((resolve, reject) => {
-          const push = Push(serviceName, service, facebookId, item, time);
+          const push = Push(serviceName, service, facebookId, item, time, object);
           if (push[service.type]) {
             push[service.type]()
               .then((res) => {
@@ -221,8 +221,11 @@ app.use(
   verifyHubSignature,
   (req, res) => {
     let body = req.body;
+    console.log(body);
+    console.log(body.entry[0].changes);
+    logger.info(`body.object: ${body.object}`);
     if (Buffer.isBuffer(req.body)) body = JSON.parse(req.body.toString());
-    if (body.object == "page") {
+    if (body.object == "page" || body.object == "instagram") {
       logger.info(
         `Receiving ${body.entry.length} entries from Facebook subscription`
       );
@@ -232,7 +235,7 @@ app.use(
         const facebookId = entry.id;
         if (entry.changes) {
           entry.changes.forEach(async (item) => {
-            promises.push(pushItem(facebookId, item, entry.time));
+            promises.push(pushItem(facebookId, item, entry.time, body.object));
           });
         } else if (entry.messaging) {
           entry.messaging.forEach(async (item) => {
