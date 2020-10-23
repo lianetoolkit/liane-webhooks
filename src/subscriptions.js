@@ -81,7 +81,7 @@ const validateDDPClient = (client) => {
   );
 };
 
-const Push = function (name, service, facebookId, item, time, object = 'page') {
+const Push = function (name, service, facebookId, item, time, object = "page") {
   return {
     ddp: () => {
       const clients = app.get("ddpClients");
@@ -163,7 +163,7 @@ const validateFields = (serviceFields, item) => {
   return false;
 };
 
-const getBody = (facebookId, time, item, object = 'page') => {
+const getBody = (facebookId, time, item, object = "page") => {
   let body = {
     object: object,
     entry: [
@@ -182,7 +182,7 @@ const getBody = (facebookId, time, item, object = 'page') => {
   return body;
 };
 
-const pushItem = (facebookId, item, time, object = 'page') => {
+const pushItem = (facebookId, item, time, object = "page") => {
   const services = config.get("services");
   let promises = [];
   for (const serviceName in services) {
@@ -194,7 +194,14 @@ const pushItem = (facebookId, item, time, object = 'page') => {
     ) {
       promises.push(
         new Promise((resolve, reject) => {
-          const push = Push(serviceName, service, facebookId, item, time, object);
+          const push = Push(
+            serviceName,
+            service,
+            facebookId,
+            item,
+            time,
+            object
+          );
           if (push[service.type]) {
             push[service.type]()
               .then((res) => {
@@ -221,8 +228,6 @@ app.use(
   verifyHubSignature,
   (req, res) => {
     let body = req.body;
-    console.log(body);
-    console.log(body.entry[0].changes);
     logger.info(`body.object: ${body.object}`);
     if (Buffer.isBuffer(req.body)) body = JSON.parse(req.body.toString());
     if (body.object == "page" || body.object == "instagram") {
