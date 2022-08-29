@@ -39,36 +39,44 @@ const validateRequest = (req, res, next) => {
 
 // Authorize Facebook
 const authorizeFacebook = (req, res, next) => {
-  if (req.query["hub.mode"] == "subscribe") {
-    const valid = req.query["hub.verify_token"] == app.get("fbVerifyToken");
-    if (valid) {
-      logger.info("Authorizing subscription through hub token");
-      res.status(200).send(req.query["hub.challenge"]);
+  try {
+    if (req.query["hub.mode"] == "subscribe") {
+      const valid = req.query["hub.verify_token"] == app.get("fbVerifyToken");
+      if (valid) {
+        logger.info("Authorizing subscription through hub token");
+        res.status(200).send(req.query["hub.challenge"]);
+      } else {
+        logger.warn("Unauthorized authorization request");
+        res.sendStatus(200);
+      }
     } else {
-      logger.warn("Unauthorized authorization request");
-      res.status(400).send("Invalid token");
+      next();
     }
-  } else {
-    next();
+  } catch (err) {
+    res.sendStatus(200);
   }
 };
 
 // Hub signature verification
 const verifyHubSignature = (req, res, next) => {
-  const facebookConfig = config.get("facebook");
-  const signature = req.headers["x-hub-signature"];
-  if (signature !== undefined) {
-    const hmac = crypto.createHmac("sha1", facebookConfig.clientSecret);
-    hmac.update(req.rawBody);
-    const expectedSignature = "sha1=" + hmac.digest("hex");
-    if (expectedSignature !== signature) {
-      logger.warn("Invalid signature from hub challenge");
-      res.status(400).send("Invalid signature");
+  try {
+    const facebookConfig = config.get("facebook");
+    const signature = req.headers["x-hub-signature"];
+    if (signature !== undefined) {
+      const hmac = crypto.createHmac("sha1", facebookConfig.clientSecret);
+      hmac.update(req.rawBody);
+      const expectedSignature = "sha1=" + hmac.digest("hex");
+      if (expectedSignature !== signature) {
+        logger.warn("Invalid signature from hub challenge");
+        res.sendStatus(200);
+      } else {
+        next();
+      }
     } else {
       next();
     }
-  } else {
-    next();
+  } catch (err) {
+    res.sendStatus(200);
   }
 };
 
@@ -230,37 +238,41 @@ app.use(
     let body = req.body;
     logger.info(`body.object: ${body.object}`);
     if (Buffer.isBuffer(req.body)) body = JSON.parse(req.body.toString());
-    if (body.object == "page" || body.object == "instagram") {
-      logger.info(
-        `Receiving ${body.entry.length} entries from Facebook subscription`
-      );
-      let errors = [];
-      let promises = [];
-      body.entry.forEach((entry) => {
-        const facebookId = entry.id;
-        if (entry.changes) {
-          entry.changes.forEach(async (item) => {
-            promises.push(pushItem(facebookId, item, entry.time, body.object));
-          });
-        } else if (entry.messaging) {
-          entry.messaging.forEach(async (item) => {
-            promises.push(pushItem(facebookId, item, entry.time));
-          });
-        }
-      });
-      Promise.all(promises)
-        .then(() => {
-          logger.info("Succesfully processed webhook updates");
-          res.sendStatus(200);
-        })
-        .catch((err) => {
-          console.log(err);
-          logger.error("Error processing webhook data");
-          res.status(500).send(err);
+    try {
+      if (body.object == "page" || body.object == "instagram") {
+        logger.info(
+          `Receiving ${body.entry.length} entries from Facebook subscription`
+        );
+        let errors = [];
+        let promises = [];
+        body.entry.forEach((entry) => {
+          const facebookId = entry.id;
+          if (entry.changes) {
+            entry.changes.forEach(async (item) => {
+              promises.push(pushItem(facebookId, item, entry.time, body.object));
+            });
+          } else if (entry.messaging) {
+            entry.messaging.forEach(async (item) => {
+              promises.push(pushItem(facebookId, item, entry.time));
+            });
+          }
         });
-    } else {
-      logger.warn("Bad request");
-      res.sendStatus(400);
+        Promise.all(promises)
+          .then(() => {
+            logger.info("Succesfully processed webhook updates");
+            res.sendStatus(200);
+          })
+          .catch((err) => {
+            console.log(err);
+            logger.error("Error processing webhook data");
+            res.sendStatus(200);
+          });
+      } else {
+        logger.warn("Bad request");
+        res.sendStatus(200);
+      }
+    } catch (err) {
+      res.sendStatus(200);
     }
   }
 );
