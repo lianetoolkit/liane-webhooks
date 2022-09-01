@@ -26,6 +26,16 @@ const MESSAGE_FIELD_MAP = {
   message_reads: "read",
 };
 
+// Log request
+const logRequest = (req, res, next) => {
+  let body = req.body;
+  const facebookConfig = config.get("facebook");
+  if (facebookConfig.logWebhookBodies) {
+    logger.info(`webhook body: ${body}`);
+  }
+  next();
+};
+
 // Validate request
 // Should either be authorization or webhook data with signature
 const validateRequest = (req, res, next) => {
@@ -231,6 +241,7 @@ const pushItem = (facebookId, item, time, object = "page") => {
 // Handling subscription data
 app.use(
   "/",
+  logRequest,
   validateRequest,
   authorizeFacebook,
   verifyHubSignature,
