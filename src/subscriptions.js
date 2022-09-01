@@ -271,13 +271,14 @@ app.use(
         Promise.all(promises)
           .then(() => {
             logger.info("Succesfully processed webhook updates");
-            res.sendStatus(200);
+            // res.sendStatus(200);
           })
           .catch((err) => {
             console.log(err);
             logger.error("Error processing webhook data");
-            res.sendStatus(200);
+            // res.sendStatus(200);
           });
+        res.sendStatus(200);
       } else {
         logger.warn("Bad request");
         res.sendStatus(200);
