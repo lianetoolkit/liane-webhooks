@@ -28,8 +28,7 @@ const MESSAGE_FIELD_MAP = {
 
 // Log request
 const logRequest = (req, res, next) => {
-  let body = req.body;
-  if (Buffer.isBuffer(req.body)) body = JSON.parse(req.body.toString());
+  let body = JSON.stringify(req.body);
   const facebookConfig = config.get("facebook");
   if (facebookConfig.logWebhookBodies) {
     logger.info(`webhook body: ${body}`);
